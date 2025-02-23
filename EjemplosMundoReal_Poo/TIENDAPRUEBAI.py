@@ -1,3 +1,6 @@
+import tkinter as tk
+from tkinter import messagebox
+
 # Clase Producto
 class Producto:
     def __init__(self, id_producto, nombre, cantidad, precio):
@@ -9,7 +12,6 @@ class Producto:
     def get_info(self):
         return f"ID: {self.id_producto}, Nombre: {self.nombre}, Cantidad: {self.cantidad}, Precio: ${self.precio:.2f}"
 
-
 # Clase Inventario
 class Inventario:
     def __init__(self):
@@ -17,19 +19,19 @@ class Inventario:
 
     def agregar_producto(self, id_producto, nombre, cantidad, precio):
         if any(p.id_producto == id_producto for p in self.productos):
-            print("Error: El ID del producto ya existe.")
+            messagebox.showerror("Error", "El ID del producto ya existe.")
             return
         nuevo_producto = Producto(id_producto, nombre, cantidad, precio)
         self.productos.append(nuevo_producto)
-        print("Producto agregado exitosamente.")
+        messagebox.showinfo("Éxito", "Producto agregado exitosamente.")
 
     def eliminar_producto(self, id_producto):
         for producto in self.productos:
             if producto.id_producto == id_producto:
                 self.productos.remove(producto)
-                print("Producto eliminado correctamente.")
+                messagebox.showinfo("Éxito", "Producto eliminado correctamente.")
                 return
-        print("Error: Producto no encontrado.")
+        messagebox.showerror("Error", "Producto no encontrado.")
 
     def actualizar_producto(self, id_producto, cantidad=None, precio=None):
         for producto in self.productos:
@@ -38,68 +40,73 @@ class Inventario:
                     producto.cantidad = cantidad
                 if precio is not None:
                     producto.precio = precio
-                print("Producto actualizado correctamente.")
+                messagebox.showinfo("Éxito", "Producto actualizado correctamente.")
                 return
-        print("Error: Producto no encontrado.")
+        messagebox.showerror("Error", "Producto no encontrado.")
 
     def buscar_producto(self, nombre):
         resultados = [p.get_info() for p in self.productos if nombre.lower() in p.nombre.lower()]
         if resultados:
-            print("Productos encontrados:")
-            for res in resultados:
-                print(res)
+            messagebox.showinfo("Resultados", "\n".join(resultados))
         else:
-            print("No se encontraron productos con ese nombre.")
+            messagebox.showerror("Error", "No se encontraron productos con ese nombre.")
 
     def mostrar_inventario(self):
         if not self.productos:
-            print("Inventario vacío.")
+            messagebox.showinfo("Inventario", "Inventario vacío.")
         else:
-            print("Inventario actual:")
-            for producto in self.productos:
-                print(producto.get_info())
+            inventario_texto = "\n".join(p.get_info() for p in self.productos)
+            messagebox.showinfo("Inventario", inventario_texto)
 
+# Interfaz Gráfica
+class App:
+    def __init__(self, root):
+        self.inventario = Inventario()
+        self.root = root
+        self.root.title("Gestión de Inventarios - Le Alcanza")
+        
+        tk.Label(root, text="ID del producto:").pack()
+        self.id_entry = tk.Entry(root)
+        self.id_entry.pack()
+        
+        tk.Label(root, text="Nombre del producto:").pack()
+        self.nombre_entry = tk.Entry(root)
+        self.nombre_entry.pack()
+        
+        tk.Label(root, text="Cantidad:").pack()
+        self.cantidad_entry = tk.Entry(root)
+        self.cantidad_entry.pack()
+        
+        tk.Label(root, text="Precio:").pack()
+        self.precio_entry = tk.Entry(root)
+        self.precio_entry.pack()
+        
+        tk.Button(root, text="Agregar Producto", command=self.agregar_producto).pack()
+        tk.Button(root, text="Eliminar Producto", command=self.eliminar_producto).pack()
+        tk.Button(root, text="Actualizar Producto", command=self.actualizar_producto).pack()
+        tk.Button(root, text="Buscar Producto", command=self.buscar_producto).pack()
+        tk.Button(root, text="Mostrar Inventario", command=self.mostrar_inventario).pack()
 
-# Menú de la consola
-def menu():
-    inventario = Inventario()
-    while True:
-        print("\n--- Sistema de Gestión de Inventarios - Le Alcanza ---")
-        print("1. Agregar Producto")
-        print("2. Eliminar Producto")
-        print("3. Actualizar Producto")
-        print("4. Buscar Producto")
-        print("5. Mostrar Inventario")
-        print("6. Salir")
-        opcion = input("Seleccione una opción: ")
+    def agregar_producto(self):
+        self.inventario.agregar_producto(self.id_entry.get(), self.nombre_entry.get(), int(self.cantidad_entry.get()), float(self.precio_entry.get()))
 
-        if opcion == "1":
-            id_producto = input("ID del producto: ")
-            nombre = input("Nombre del producto: ")
-            cantidad = int(input("Cantidad: "))
-            precio = float(input("Precio: "))
-            inventario.agregar_producto(id_producto, nombre, cantidad, precio)
-        elif opcion == "2":
-            id_producto = input("ID del producto a eliminar: ")
-            inventario.eliminar_producto(id_producto)
-        elif opcion == "3":
-            id_producto = input("ID del producto a actualizar: ")
-            cantidad = input("Nueva cantidad (dejar en blanco si no se cambia): ")
-            precio = input("Nuevo precio (dejar en blanco si no se cambia): ")
-            cantidad = int(cantidad) if cantidad else None
-            precio = float(precio) if precio else None
-            inventario.actualizar_producto(id_producto, cantidad, precio)
-        elif opcion == "4":
-            nombre = input("Ingrese el nombre del producto a buscar: ")
-            inventario.buscar_producto(nombre)
-        elif opcion == "5":
-            inventario.mostrar_inventario()
-        elif opcion == "6":
-            print("Saliendo del sistema...")
-            break
-        else:
-            print("Opción no válida, intente nuevamente.")
-
+    def eliminar_producto(self):
+        self.inventario.eliminar_producto(self.id_entry.get())
+    
+    def actualizar_producto(self):
+        cantidad = self.cantidad_entry.get()
+        precio = self.precio_entry.get()
+        cantidad = int(cantidad) if cantidad else None
+        precio = float(precio) if precio else None
+        self.inventario.actualizar_producto(self.id_entry.get(), cantidad, precio)
+    
+    def buscar_producto(self):
+        self.inventario.buscar_producto(self.nombre_entry.get())
+    
+    def mostrar_inventario(self):
+        self.inventario.mostrar_inventario()
 
 if __name__ == "__main__":
-    menu()
+    root = tk.Tk()
+    app = App(root)
+    root.mainloop()
